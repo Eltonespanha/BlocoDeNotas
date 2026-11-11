@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pad Colaborativo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background-color: #252526;
+      border-bottom: 1px solid #3c3c3c;
+      font-size: 14px;
+    }
+    .url-info { color: #4ec9b0; font-weight: bold; }
+    .status { font-size: 12px; color: #858585; transition: color 0.2s; }
+    .status.saving { color: #ce9178; }
+    .status.saved { color: #6a9955; }
+    textarea {
+      flex: 1;
+      width: 100%;
+      background: transparent;
+      color: #d4d4d4;
+      border: none;
+      outline: none;
+      padding: 20px;
+      font-family: inherit;
+      font-size: 16px;
+      line-height: 1.6;
+      resize: none;
+    }
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 20px;
+      background-color: #252526;
+      border-top: 1px solid #3c3c3c;
+      font-size: 12px;
+      color: #858585;
+    }
+    .watermark {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #569cd6, #4ec9b0, #ce9178, #569cd6);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientShift 6s ease infinite;
+      opacity: 0.85;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>Nota atual: <span id="note-name" class="url-info">#home</span></div>
+    <div id="status" class="status">Conectando...</div>
+  </header>
+
+  <textarea id="pad" placeholder="Digite seu texto aqui..."></textarea>
+
+  <footer>
+    <div id="counter">0 caracteres | 0 palavras</div>
+    <div class="watermark">by Elton Ferreira</div>
+  </footer>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA7w8j5QQlJWcNbUQnHRNBbPEUqX0rG94s",
+      authDomain: "meublocodenotas-5c5c8.firebaseapp.com",
+      databaseURL: "https://meublocodenotas-5c5c8-default-rtdb.firebaseio.com",
+      projectId: "meublocodenotas-5c5c8",
+      storageBucket: "meublocodenotas-5c5c8.firebasestorage.app",
+      messagingSenderId: "1075640939913",
+      appId: "1:1075640939913:web:8457257fcb17df77175d58",
+      measurementId: "G-93Y0JKZZC7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const pad = document.getElementById("pad");
+    const statusEl = document.getElementById("status");
+    const noteNameEl = document.getElementById("note-name");
+    const counterEl = document.getElementById("counter");
+
+    function getNoteId() {
+      const hash = window.location.hash.replace("#", "").trim();
+      return hash.length > 0 ? hash : "home";
+    }
+
+    let currentNoteId = getNoteId();
+    noteNameEl.textContent = `#${currentNoteId}`;
+    let noteRef = ref(db, 'notes/' + currentNoteId);
+
+    // Cache local para abertura imediata sem piscar tela
+    const localKey = `dontpad_cache_${currentNoteId}`;
+    const cachedContent = localStorage.getItem(localKey);
+    if (cachedContent !== null) {
+      pad.value = cachedContent;
+      updateCounters();
+    }
+
+    let isUserTyping = false;
+    let debounceTimer = null;
+    let unsubscribe = null;
+
+    function listenToDatabase() {
+      if (unsubscribe) unsubscribe();
+      
+      unsubscribe = onValue(noteRef, (snapshot) => {
+        if (!isUserTyping) {
+          const val = snapshot.val() || "";
+          pad.value = val;
+          localStorage.setItem(localKey, val);
+          updateCounters();
+          setStatus("Sincronizado", "saved");
+        }
+      });
+    }
+
+    listenToDatabase();
+
+    window.addEventListener("hashchange", () => {
+      currentNoteId = getNoteId();
+      noteNameEl.textContent = `#${currentNoteId}`;
+      noteRef = ref(db, 'notes/' + currentNoteId);
+      isUserTyping = false;
+      setStatus("Carregando...", "");
+      listenToDatabase();
+    });
+
+    pad.addEventListener("input", () => {
+      isUserTyping = true;
+      setStatus("Salvando...", "saving");
+      updateCounters();
+      
+      localStorage.setItem(localKey, pad.value);
+
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        set(noteRef, pad.value)
+          .then(() => {
+            setStatus("Salvo", "saved");
+            isUserTyping = false;
+          })
+          .catch((err) => {
+            console.error("Erro ao salvar:", err);
+            setStatus("Erro de permissão/conexão", "saving");
+            isUserTyping = false;
+          });
+      }, 350);
+    });
+
+    function setStatus(text, className) {
+      statusEl.textContent = text;
+      statusEl.className = `status ${className}`;
+    }
+
+    function updateCounters() {
+      const text = pad.value;
+      const chars = text.length;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      counterEl.textContent = `${chars} caracteres | ${words} palavras`;
+    }
+  </script>
+</body>
+</html>
