@@ -40,6 +40,7 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
+      height: 100dvh; /* Ajuste dinâmico para telas de celular */
       overflow: hidden;
       transition: background-color 0.3s, color 0.3s;
     }
@@ -49,15 +50,16 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 20px;
+      padding: 8px 15px;
       background-color: var(--bg-bar);
       border-bottom: 1px solid var(--border-color);
       font-size: 14px;
+      flex-shrink: 0;
     }
 
     .controls {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
     }
 
@@ -65,12 +67,13 @@
       background-color: var(--button-bg);
       color: var(--button-text);
       border: 1px solid var(--border-color);
-      padding: 5px 12px;
+      padding: 5px 10px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 12px;
       font-family: inherit;
       transition: all 0.2s;
+      white-space: nowrap;
     }
 
     .btn:hover {
@@ -78,7 +81,7 @@
     }
 
     .url-info { color: var(--accent-color); font-weight: bold; }
-    .status { font-size: 12px; opacity: 0.8; transition: color 0.2s; }
+    .status { font-size: 12px; opacity: 0.8; transition: color 0.2s; white-space: nowrap; }
     .status.saving { color: var(--status-saving); }
     .status.saved { color: var(--status-saved); }
 
@@ -87,11 +90,13 @@
       flex: 1;
       display: flex;
       padding: 10px;
+      min-height: 0;
     }
 
     textarea {
       flex: 1;
       width: 100%;
+      height: 100%;
       background: transparent;
       color: var(--text-main);
       border: none;
@@ -122,7 +127,7 @@
       letter-spacing: 0.3px;
     }
 
-    /* Rodapé Inferior - Ticker de Cotações */
+    /* Rodapé 1: Ticker de Cotações */
     .bottom-ticker-bar {
       height: 32px;
       background-color: var(--bg-bar);
@@ -133,6 +138,7 @@
       white-space: nowrap;
       font-size: 13px;
       font-weight: bold;
+      flex-shrink: 0;
     }
 
     .ticker-wrapper {
@@ -162,18 +168,19 @@
       100% { transform: translateX(-50%); }
     }
 
-    /* Rodapé com Informações */
+    /* Rodapé 2: Informações de Contagem e Marca d'Água */
     footer {
       height: 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 15px;
       background-color: var(--bg-bar);
       border-top: 1px solid var(--border-color);
       font-size: 12px;
       color: var(--text-main);
       opacity: 0.9;
+      flex-shrink: 0;
     }
 
     .watermark {
@@ -212,7 +219,7 @@
     <textarea id="pad" class="font-classic" placeholder="Digite seu texto aqui..."></textarea>
   </div>
 
-  <!-- Rodapé 1: Ticker de Cotações no Rodapé -->
+  <!-- Rodapé 1: Ticker de Cotações -->
   <div class="bottom-ticker-bar">
     <div class="ticker-wrapper" id="ticker-content">
       <div class="ticker-item">Carregando cotações...</div>
@@ -249,6 +256,7 @@
     const counterEl = document.getElementById("counter");
     const themeBtn = document.getElementById("theme-btn");
     const fontBtn = document.getElementById("font-btn");
+    const tickerContainer = document.getElementById("ticker-content");
 
     // --- LÓGICA DE ROTAS E NOTAS ---
     function getNoteId() {
@@ -340,7 +348,7 @@
       counterEl.textContent = `${chars} caracteres | ${words} palavras`;
     }
 
-    // --- CONTROLE DE TEMA (CLARO / ESCURO) ---
+    // --- CONTROLE DE TEMA ---
     themeBtn.addEventListener("click", () => {
       document.body.classList.toggle("light-theme");
       const isLight = document.body.classList.contains("light-theme");
@@ -353,7 +361,7 @@
       themeBtn.textContent = "🌙 Tema Escuro";
     }
 
-    // --- CONTROLE DE ESTILO DE FONTE ---
+    // --- CONTROLE DE FONTE ---
     const fontStyles = [
       { class: "font-classic", label: "✍️ Fonte: Monospace" },
       { class: "font-cursive", label: "✍️ Fonte: Manuscrita" },
@@ -375,48 +383,51 @@
 
     applyFontIndex(currentFontIndex);
 
-    // --- TICKER DE COTAÇÕES EM TEMPO REAL ---
-    const tickerContainer = document.getElementById("ticker-content");
-
+    // --- TICKER DE COTAÇÕES TOLERANTE A FALHAS DE REDE MÓVEL ---
     async function fetchQuotes() {
+      const items = [];
+
+      // Ações B3 (sempre presentes)
+      const stocks = [
+        { symbol: "PETR4", price: 38.45, pct: 1.25 },
+        { symbol: "ABEV3", price: 14.20, pct: -0.42 },
+        { symbol: "VALE3", price: 62.10, pct: 0.85 },
+        { symbol: "ITUB4", price: 34.80, pct: -0.15 }
+      ];
+
+      stocks.forEach(s => {
+        items.push(formatTickerItem(s.symbol, s.price.toFixed(2), s.pct));
+      });
+
+      // Tenta buscar Moedas (AwesomeAPI)
       try {
-        const [forexRes, cryptoRes] = await Promise.all([
-          fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-USD").then(r => r.json()).catch(() => null),
-          fetch("https://api.binance.com/api/v3/ticker/24hr?symbols=[%22BTCUSDT%22,%22ETHUSDT%22]").then(r => r.json()).catch(() => null)
-        ]);
-
-        const items = [];
-
-        const stocks = [
-          { symbol: "PETR4", price: 38.45, pct: 1.25 },
-          { symbol: "ABEV3", price: 14.20, pct: -0.42 },
-          { symbol: "VALE3", price: 62.10, pct: 0.85 },
-          { symbol: "ITUB4", price: 34.80, pct: -0.15 }
-        ];
-
-        stocks.forEach(s => {
-          items.push(formatTickerItem(s.symbol, s.price.toFixed(2), s.pct));
-        });
-
-        if (forexRes && forexRes.USDBRL) {
+        const forexRes = await fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-USD").then(r => r.json());
+        if (forexRes?.USDBRL) {
           items.push(formatTickerItem("USD/BRL", parseFloat(forexRes.USDBRL.bid).toFixed(2), parseFloat(forexRes.USDBRL.pctChange)));
         }
-        if (forexRes && forexRes.EURUSD) {
+        if (forexRes?.EURUSD) {
           items.push(formatTickerItem("EUR/USD", parseFloat(forexRes.EURUSD.bid).toFixed(4), parseFloat(forexRes.EURUSD.pctChange)));
         }
+      } catch (e) {
+        console.warn("Moedas indisponíveis no momento");
+      }
 
-        if (cryptoRes && Array.isArray(cryptoRes)) {
+      // Tenta buscar Criptomoedas (Binance)
+      try {
+        const cryptoRes = await fetch("https://api.binance.com/api/v3/ticker/24hr?symbols=[%22BTCUSDT%22,%22ETHUSDT%22]").then(r => r.json());
+        if (Array.isArray(cryptoRes)) {
           cryptoRes.forEach(c => {
             const name = c.symbol === "BTCUSDT" ? "BTC/USD" : "ETH/USD";
             items.push(formatTickerItem(name, parseFloat(c.lastPrice).toLocaleString('en-US', {minimumFractionDigits: 2}), parseFloat(c.priceChangePercent)));
           });
         }
+      } catch (e) {
+        console.warn("Criptos indisponíveis no 4G/rede móvel");
+      }
 
-        const fullList = [...items, ...items].join("");
-        tickerContainer.innerHTML = fullList;
-
-      } catch (err) {
-        console.error("Erro ao buscar cotações:", err);
+      // Renderiza duplicando para efeito infinito de rolagem
+      if (items.length > 0) {
+        tickerContainer.innerHTML = [...items, ...items].join("");
       }
     }
 
