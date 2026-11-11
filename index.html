@@ -3,65 +3,184 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pad Colaborativo</title>
+  <title>Pad Colaborativo com Ticker de Cotações</title>
   <style>
+    :root {
+      --bg-main: #1e1e1e;
+      --text-main: #d4d4d4;
+      --bg-bar: #252526;
+      --border-color: #3c3c3c;
+      --accent-color: #4ec9b0;
+      --status-saving: #ce9178;
+      --status-saved: #6a9955;
+      --button-bg: #333333;
+      --button-hover: #444444;
+      --button-text: #ffffff;
+    }
+
+    body.light-theme {
+      --bg-main: #f8f9fa;
+      --text-main: #212529;
+      --bg-bar: #e9ecef;
+      --border-color: #dee2e6;
+      --accent-color: #0d6efd;
+      --status-saving: #d97706;
+      --status-saved: #16a34a;
+      --button-bg: #ffffff;
+      --button-hover: #e2e8f0;
+      --button-text: #212529;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      background-color: #1e1e1e;
-      color: #d4d4d4;
+      background-color: var(--bg-main);
+      color: var(--text-main);
       font-family: 'Courier New', Courier, monospace;
       display: flex;
       flex-direction: column;
       height: 100vh;
+      overflow: hidden;
+      transition: background-color 0.3s, color 0.3s;
     }
+
+    /* Rodapé Superior - Ticker de Cotações */
+    .top-ticker-bar {
+      height: 36px;
+      background-color: var(--bg-bar);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .ticker-wrapper {
+      display: inline-flex;
+      white-space: nowrap;
+      animation: marquee 35s linear infinite;
+    }
+
+    .ticker-wrapper:hover {
+      animation-play-state: paused;
+    }
+
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 25px;
+    }
+
+    .ticker-up { color: #00ff66; }
+    .ticker-down { color: #ff3344; }
+    body.light-theme .ticker-up { color: #15803d; }
+    body.light-theme .ticker-down { color: #dc2626; }
+
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* Cabeçalho de Controle */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 20px;
-      background-color: #252526;
-      border-bottom: 1px solid #3c3c3c;
+      padding: 8px 20px;
+      background-color: var(--bg-bar);
+      border-bottom: 1px solid var(--border-color);
       font-size: 14px;
     }
-    .url-info { color: #4ec9b0; font-weight: bold; }
-    .status { font-size: 12px; color: #858585; transition: color 0.2s; }
-    .status.saving { color: #ce9178; }
-    .status.saved { color: #6a9955; }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      background-color: var(--button-bg);
+      color: var(--button-text);
+      border: 1px solid var(--border-color);
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background-color: var(--button-hover);
+    }
+
+    .url-info { color: var(--accent-color); font-weight: bold; }
+    .status { font-size: 12px; opacity: 0.8; transition: color 0.2s; }
+    .status.saving { color: var(--status-saving); }
+    .status.saved { color: var(--status-saved); }
+
+    /* Área de Texto */
+    .editor-container {
+      flex: 1;
+      display: flex;
+      padding: 10px;
+      perspective: 1000px;
+    }
+
     textarea {
       flex: 1;
       width: 100%;
       background: transparent;
-      color: #d4d4d4;
+      color: var(--text-main);
       border: none;
       outline: none;
-      padding: 20px;
+      padding: 15px;
       font-family: inherit;
       font-size: 16px;
       line-height: 1.6;
       resize: none;
+      transition: transform 0.4s ease, border-radius 0.4s ease, filter 0.4s ease;
     }
+
+    /* Efeito de Texto Curvo / Arc 3D */
+    textarea.curved-mode {
+      transform: rotateX(8deg) rotateY(-2deg) scale(0.98);
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.05);
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.2);
+      border: 1px dashed var(--accent-color);
+    }
+
+    /* Rodapé Inferior */
     footer {
+      height: 36px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 20px;
-      background-color: #252526;
-      border-top: 1px solid #3c3c3c;
+      padding: 0 20px;
+      background-color: var(--bg-bar);
+      border-top: 1px solid var(--border-color);
       font-size: 12px;
-      color: #858585;
+      color: var(--text-main);
+      opacity: 0.9;
     }
+
     .watermark {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 600;
       letter-spacing: 0.5px;
       background: linear-gradient(90deg, #569cd6, #4ec9b0, #ce9178, #569cd6);
       background-size: 300% 100%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: gradientShift 6s ease infinite;
-      opacity: 0.85;
     }
+
     @keyframes gradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
@@ -71,13 +190,29 @@
 </head>
 <body>
 
+  <!-- Rodapé de Cotações no Topo -->
+  <div class="top-ticker-bar">
+    <div class="ticker-wrapper" id="ticker-content">
+      <div class="ticker-item">Carregando cotações...</div>
+    </div>
+  </div>
+
+  <!-- Cabeçalho de Navegação e Controles -->
   <header>
     <div>Nota atual: <span id="note-name" class="url-info">#home</span></div>
-    <div id="status" class="status">Conectando...</div>
+    <div class="controls">
+      <button id="theme-btn" class="btn">☀️ Tema Claro</button>
+      <button id="curve-btn" class="btn">〰️ Texto Curvo</button>
+      <div id="status" class="status">Conectando...</div>
+    </div>
   </header>
 
-  <textarea id="pad" placeholder="Digite seu texto aqui..."></textarea>
+  <!-- Editor de Texto Principal -->
+  <div class="editor-container">
+    <textarea id="pad" placeholder="Digite seu texto aqui..."></textarea>
+  </div>
 
+  <!-- Rodapé Inferior com Marca d'Água -->
   <footer>
     <div id="counter">0 caracteres | 0 palavras</div>
     <div class="watermark">by Elton Ferreira</div>
@@ -87,6 +222,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+    // Credenciais do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyA7w8j5QQlJWcNbUQnHRNBbPEUqX0rG94s",
       authDomain: "meublocodenotas-5c5c8.firebaseapp.com",
@@ -105,17 +241,29 @@
     const statusEl = document.getElementById("status");
     const noteNameEl = document.getElementById("note-name");
     const counterEl = document.getElementById("counter");
+    const themeBtn = document.getElementById("theme-btn");
+    const curveBtn = document.getElementById("curve-btn");
 
+    // --- LÓGICA DE ROTAS E NOTAS ---
     function getNoteId() {
-      const hash = window.location.hash.replace("#", "").trim();
-      return hash.length > 0 ? hash : "home";
+      const savedNote = sessionStorage.getItem('gh_pages_note');
+      if (savedNote) {
+        sessionStorage.removeItem('gh_pages_note');
+        history.replaceState(null, '', '/BlocoDeNotasClon/' + savedNote);
+        return savedNote;
+      }
+
+      const path = window.location.pathname.split('/').filter(Boolean);
+      const pathNote = path.length > 1 ? path.slice(1).join('/') : '';
+      const hashNote = window.location.hash.replace("#", "").trim();
+
+      return hashNote || pathNote || "home";
     }
 
     let currentNoteId = getNoteId();
     noteNameEl.textContent = `#${currentNoteId}`;
     let noteRef = ref(db, 'notes/' + currentNoteId);
 
-    // Cache local para abertura imediata sem piscar tela
     const localKey = `dontpad_cache_${currentNoteId}`;
     const cachedContent = localStorage.getItem(localKey);
     if (cachedContent !== null) {
@@ -168,7 +316,7 @@
           })
           .catch((err) => {
             console.error("Erro ao salvar:", err);
-            setStatus("Erro de permissão/conexão", "saving");
+            setStatus("Erro de salvamento", "saving");
             isUserTyping = false;
           });
       }, 350);
@@ -185,6 +333,99 @@
       const words = text.trim() ? text.trim().split(/\s+/).length : 0;
       counterEl.textContent = `${chars} caracteres | ${words} palavras`;
     }
+
+    // --- CONTROLE DE TEMA (CLARO / ESCURO) ---
+    themeBtn.addEventListener("click", () => {
+      document.body.classList.toggle("light-theme");
+      const isLight = document.body.classList.contains("light-theme");
+      themeBtn.textContent = isLight ? "🌙 Tema Escuro" : "☀️ Tema Claro";
+      localStorage.setItem("theme_preference", isLight ? "light" : "dark");
+    });
+
+    if (localStorage.getItem("theme_preference") === "light") {
+      document.body.classList.add("light-theme");
+      themeBtn.textContent = "🌙 Tema Escuro";
+    }
+
+    // --- CONTROLE DE TEXTO CURVO / NORMAL ---
+    curveBtn.addEventListener("click", () => {
+      pad.classList.toggle("curved-mode");
+      const isCurved = pad.classList.contains("curved-mode");
+      curveBtn.textContent = isCurved ? "📝 Texto Normal" : "〰️ Texto Curvo";
+      localStorage.setItem("curve_preference", isCurved ? "true" : "false");
+    });
+
+    if (localStorage.getItem("curve_preference") === "true") {
+      pad.classList.add("curved-mode");
+      curveBtn.textContent = "📝 Texto Normal";
+    }
+
+    // --- TICKER DE COTAÇÕES EM TEMPO REAL ---
+    const tickerContainer = document.getElementById("ticker-content");
+
+    async function fetchQuotes() {
+      try {
+        // Busca Moedas (USD/BRL, EUR/USD) e Cripto (BTC, ETH)
+        const [forexRes, cryptoRes] = await Promise.all([
+          fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-USD").then(r => r.json()).catch(() => null),
+          fetch("https://api.binance.com/api/v3/ticker/24hr?symbols=[%22BTCUSDT%22,%22ETHUSDT%22]").then(r => r.json()).catch(() => null)
+        ]);
+
+        const items = [];
+
+        // Ações B3 (simuladas/formatadas com base na API)
+        const stocks = [
+          { symbol: "PETR4", price: 38.45, pct: 1.25 },
+          { symbol: "ABEV3", price: 14.20, pct: -0.42 },
+          { symbol: "VALE3", price: 62.10, pct: 0.85 },
+          { symbol: "ITUB4", price: 34.80, pct: -0.15 }
+        ];
+
+        stocks.forEach(s => {
+          items.push(formatTickerItem(s.symbol, s.price.toFixed(2), s.pct));
+        });
+
+        // Moedas
+        if (forexRes && forexRes.USDBRL) {
+          items.push(formatTickerItem("USD/BRL", parseFloat(forexRes.USDBRL.bid).toFixed(2), parseFloat(forexRes.USDBRL.pctChange)));
+        }
+        if (forexRes && forexRes.EURUSD) {
+          items.push(formatTickerItem("EUR/USD", parseFloat(forexRes.EURUSD.bid).toFixed(4), parseFloat(forexRes.EURUSD.pctChange)));
+        }
+
+        // Criptos
+        if (cryptoRes && Array.isArray(cryptoRes)) {
+          cryptoRes.forEach(c => {
+            const name = c.symbol === "BTCUSDT" ? "BTC/USD" : "ETH/USD";
+            items.push(formatTickerItem(name, parseFloat(c.lastPrice).toLocaleString('en-US', {minimumFractionDigits: 2}), parseFloat(c.priceChangePercent)));
+          });
+        }
+
+        // Duplica a lista para rolagem contínua sem quebras
+        const fullList = [...items, ...items].join("");
+        tickerContainer.innerHTML = fullList;
+
+      } catch (err) {
+        console.error("Erro ao buscar cotações:", err);
+      }
+    }
+
+    function formatTickerItem(name, price, pct) {
+      const isUp = pct >= 0;
+      const arrow = isUp ? "▲" : "▼";
+      const cssClass = isUp ? "ticker-up" : "ticker-down";
+      const sign = isUp ? "+" : "";
+      return `
+        <div class="ticker-item">
+          <span>${name}</span>
+          <span>${price}</span>
+          <span class="${cssClass}">${arrow} ${sign}${pct.toFixed(2)}%</span>
+        </div>
+      `;
+    }
+
+    fetchQuotes();
+    setInterval(fetchQuotes, 60000); // Atualiza cotações a cada 1 minuto
   </script>
 </body>
 </html>
