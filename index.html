@@ -1,452 +1,421 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pad Colaborativo</title>
-  <style>
-    :root {
-      --bg-main: #1e1e1e;
-      --text-main: #d4d4d4;
-      --bg-bar: #252526;
-      --border-color: #3c3c3c;
-      --accent-color: #4ec9b0;
-      --status-saving: #ce9178;
-      --status-saved: #6a9955;
-      --button-bg: #333333;
-      --button-hover: #444444;
-      --button-text: #ffffff;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Pad Colaborativo</title>
+<style>
+:root{
+  --bg:#13161b; --bg2:#191d24; --panel:#1f242c; --line:#2b313b;
+  --text:#d9dee6; --muted:#7d8795; --accent:#4ec9b0; --accent-soft:rgba(78,201,176,.14);
+  --warn:#e0a070; --ok:#5fbf8a; --up:#38e07b; --down:#ff5c6c;
+  --shadow:0 18px 50px rgba(0,0,0,.45);
+}
+body.light{
+  --bg:#eef0f4; --bg2:#f6f7f9; --panel:#ffffff; --line:#dde1e8;
+  --text:#1d232c; --muted:#697384; --accent:#0e8f78; --accent-soft:rgba(14,143,120,.12);
+  --warn:#b45f1c; --ok:#17844f; --up:#12803f; --down:#c9283a;
+  --shadow:0 18px 50px rgba(30,40,60,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  display:flex;flex-direction:column;height:100dvh;overflow:hidden;
+  transition:background .25s,color .25s;
+}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-    body.light-theme {
-      --bg-main: #f8f9fa;
-      --text-main: #212529;
-      --bg-bar: #e9ecef;
-      --border-color: #dee2e6;
-      --accent-color: #0d6efd;
-      --status-saving: #d97706;
-      --status-saved: #16a34a;
-      --button-bg: #ffffff;
-      --button-hover: #e2e8f0;
-      --button-text: #212529;
-    }
+/* Cabeçalho */
+header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));
+  flex-shrink:0;transition:margin .25s,opacity .25s;
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:var(--bg);font-weight:800;font-size:14px;flex-shrink:0}
+.note-switch{
+  display:flex;align-items:center;gap:2px;background:var(--panel);border:1px solid var(--line);
+  border-radius:999px;padding:3px 12px 3px 12px;min-width:0;
+}
+.note-switch span{color:var(--accent);font-weight:700}
+#note-input{
+  background:none;border:none;outline:none;width:150px;max-width:34vw;
+  font-size:14px;font-weight:600;
+}
+.right{display:flex;align-items:center;gap:6px;position:relative}
+.status{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);padding-right:6px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);transition:background .2s}
+.status.saved .dot{background:var(--ok)}
+.status.saving .dot{background:var(--warn);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.icon{
+  width:34px;height:34px;border-radius:9px;border:1px solid transparent;background:none;
+  cursor:pointer;display:grid;place-items:center;color:var(--muted);transition:background .15s,color .15s;
+}
+.icon:hover,.icon[aria-expanded="true"]{background:var(--panel);color:var(--text);border-color:var(--line)}
+.icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+/* Menu de ajustes */
+.menu{
+  position:absolute;top:42px;right:0;width:260px;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;box-shadow:var(--shadow);padding:14px;z-index:20;
+  opacity:0;transform:translateY(-6px);pointer-events:none;transition:opacity .15s,transform .15s;
+}
+.menu.open{opacity:1;transform:none;pointer-events:auto}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;font-size:13px}
+.row + .row{border-top:1px solid var(--line)}
+.seg{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:2px}
+.seg button{background:none;border:none;border-radius:6px;padding:4px 9px;font-size:12px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.switch{width:36px;height:20px;border-radius:99px;background:var(--line);border:none;position:relative;cursor:pointer;transition:background .2s}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch.on{background:var(--accent)}
+.switch.on::after{transform:translateX(16px)}
 
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      font-family: 'Courier New', Courier, monospace;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      height: 100dvh; /* Ajuste dinâmico para telas de celular */
-      overflow: hidden;
-      transition: background-color 0.3s, color 0.3s;
-    }
+/* Editor */
+main{flex:1;min-height:0;display:flex;justify-content:center;padding:0 14px 10px}
+.sheet{
+  width:100%;max-width:880px;background:var(--bg2);border:1px solid var(--line);
+  border-radius:16px;display:flex;min-height:0;box-shadow:var(--shadow);transition:background .25s;
+}
+textarea{
+  flex:1;width:100%;height:100%;background:none;border:none;outline:none;resize:none;
+  color:var(--text);padding:26px clamp(18px,4vw,44px);font-size:var(--fs,16px);line-height:1.7;
+  caret-color:var(--accent);
+}
+textarea::placeholder{color:var(--muted)}
+textarea::selection{background:var(--accent-soft)}
+textarea.font-classic{font-family:'JetBrains Mono','Cascadia Code',Consolas,'Courier New',monospace}
+textarea.font-sans{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+textarea.font-cursive{font-family:'Segoe Print','Caveat','Comic Sans MS',cursive;letter-spacing:.4px}
 
-    /* Cabeçalho de Controle */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 15px;
-      background-color: var(--bg-bar);
-      border-bottom: 1px solid var(--border-color);
-      font-size: 14px;
-      flex-shrink: 0;
-    }
+/* Ticker */
+.ticker{height:30px;display:flex;align-items:center;overflow:hidden;white-space:nowrap;font-size:12px;border-top:1px solid var(--line);flex-shrink:0;background:var(--bg2)}
+.ticker.hide{display:none}
+.track{display:inline-flex;animation:marquee 40s linear infinite}
+.track:hover{animation-play-state:paused}
+.t{display:inline-flex;gap:7px;align-items:center;padding:0 22px;color:var(--muted)}
+.t b{color:var(--text);font-weight:600}
+.up{color:var(--up)} .down{color:var(--down)}
+@keyframes marquee{to{transform:translateX(-50%)}}
 
-    .controls {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+/* Rodapé */
+footer{
+  display:flex;justify-content:space-between;align-items:center;padding:8px 18px;
+  padding-bottom:max(8px,env(safe-area-inset-bottom));font-size:12px;color:var(--muted);flex-shrink:0;
+  border-top:1px solid var(--line);background:var(--bg2);
+}
+.mark{font-weight:600;letter-spacing:.3px;background:linear-gradient(90deg,#569cd6,#4ec9b0,#ce9178,#569cd6);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shift 8s ease infinite}
+@keyframes shift{50%{background-position:100% 50%}}
 
-    .btn {
-      background-color: var(--button-bg);
-      color: var(--button-text);
-      border: 1px solid var(--border-color);
-      padding: 5px 10px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      font-family: inherit;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
+/* Modo foco */
+body.focus header{margin-top:-60px;opacity:0;pointer-events:none}
+body.focus .ticker,body.focus footer{display:none}
+body.focus .sheet{border-color:transparent;box-shadow:none;background:transparent}
+#exit-focus{display:none;position:fixed;top:12px;right:14px;z-index:30;opacity:.45}
+#exit-focus:hover{opacity:1}
+body.focus #exit-focus{display:grid}
 
-    .btn:hover {
-      background-color: var(--button-hover);
-    }
+/* Aviso */
+.toast{
+  position:fixed;left:50%;bottom:76px;transform:translate(-50%,12px);background:var(--panel);border:1px solid var(--line);
+  padding:8px 16px;border-radius:99px;font-size:13px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.2s;z-index:40
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
 
-    .url-info { color: var(--accent-color); font-weight: bold; }
-    .status { font-size: 12px; opacity: 0.8; transition: color 0.2s; white-space: nowrap; }
-    .status.saving { color: var(--status-saving); }
-    .status.saved { color: var(--status-saved); }
-
-    /* Área de Texto */
-    .editor-container {
-      flex: 1;
-      display: flex;
-      padding: 10px;
-      min-height: 0;
-    }
-
-    textarea {
-      flex: 1;
-      width: 100%;
-      height: 100%;
-      background: transparent;
-      color: var(--text-main);
-      border: none;
-      outline: none;
-      padding: 15px;
-      font-size: 16px;
-      line-height: 1.6;
-      resize: none;
-      transition: font-family 0.2s, font-style 0.2s, letter-spacing 0.2s;
-    }
-
-    /* Variações de Estilo de Escrita */
-    textarea.font-classic {
-      font-family: 'Courier New', Courier, monospace;
-      font-style: normal;
-      letter-spacing: normal;
-    }
-
-    textarea.font-cursive {
-      font-family: 'Segoe Print', 'Caveat', 'Comic Sans MS', cursive;
-      font-size: 17px;
-      letter-spacing: 0.5px;
-    }
-
-    textarea.font-code-italic {
-      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-      font-style: italic;
-      letter-spacing: 0.3px;
-    }
-
-    /* Rodapé 1: Ticker de Cotações */
-    .bottom-ticker-bar {
-      height: 32px;
-      background-color: var(--bg-bar);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      overflow: hidden;
-      white-space: nowrap;
-      font-size: 13px;
-      font-weight: bold;
-      flex-shrink: 0;
-    }
-
-    .ticker-wrapper {
-      display: inline-flex;
-      white-space: nowrap;
-      animation: marquee 35s linear infinite;
-    }
-
-    .ticker-wrapper:hover {
-      animation-play-state: paused;
-    }
-
-    .ticker-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0 25px;
-    }
-
-    .ticker-up { color: #00ff66; }
-    .ticker-down { color: #ff3344; }
-    body.light-theme .ticker-up { color: #15803d; }
-    body.light-theme .ticker-down { color: #dc2626; }
-
-    @keyframes marquee {
-      0% { transform: translateX(0%); }
-      100% { transform: translateX(-50%); }
-    }
-
-    /* Rodapé 2: Informações de Contagem e Marca d'Água */
-    footer {
-      height: 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 15px;
-      background-color: var(--bg-bar);
-      border-top: 1px solid var(--border-color);
-      font-size: 12px;
-      color: var(--text-main);
-      opacity: 0.9;
-      flex-shrink: 0;
-    }
-
-    .watermark {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      background: linear-gradient(90deg, #569cd6, #4ec9b0, #ce9178, #569cd6);
-      background-size: 300% 100%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: gradientShift 6s ease infinite;
-    }
-
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-  </style>
+@media (max-width:560px){
+  .status span{display:none}
+  main{padding:0 8px 8px}
+  .sheet{border-radius:12px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
 
-  <!-- Cabeçalho de Navegação e Controles -->
-  <header>
-    <div>Nota atual: <span id="note-name" class="url-info">#home</span></div>
-    <div class="controls">
-      <button id="theme-btn" class="btn">☀️ Tema Claro</button>
-      <button id="font-btn" class="btn">✍️ Fonte: Monospace</button>
-      <div id="status" class="status">Conectando...</div>
-    </div>
-  </header>
-
-  <!-- Editor de Texto Principal -->
-  <div class="editor-container">
-    <textarea id="pad" class="font-classic" placeholder="Digite seu texto aqui..."></textarea>
+<header>
+  <div class="brand">
+    <div class="logo">P</div>
+    <label class="note-switch" title="Digite outro nome e Enter para abrir outra nota">
+      <span>#</span>
+      <input id="note-input" list="recent" autocomplete="off" spellcheck="false" aria-label="Nome da nota">
+      <datalist id="recent"></datalist>
+    </label>
   </div>
+  <div class="right">
+    <div id="status" class="status"><i class="dot"></i><span>Conectando…</span></div>
+    <button class="icon" id="copy-btn" title="Copiar texto" aria-label="Copiar texto">
+      <svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+    </button>
+    <button class="icon" id="share-btn" title="Copiar link da nota" aria-label="Copiar link da nota">
+      <svg viewBox="0 0 24 24"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+    </button>
+    <button class="icon" id="dl-btn" title="Baixar como .txt" aria-label="Baixar como .txt">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 20h16"/></svg>
+    </button>
+    <button class="icon" id="menu-btn" title="Ajustes" aria-label="Ajustes" aria-expanded="false">
+      <svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="17" x2="20" y2="17"/><circle cx="9" cy="7" r="2.2" fill="var(--panel)"/><circle cx="15" cy="17" r="2.2" fill="var(--panel)"/></svg>
+    </button>
 
-  <!-- Rodapé 1: Ticker de Cotações -->
-  <div class="bottom-ticker-bar">
-    <div class="ticker-wrapper" id="ticker-content">
-      <div class="ticker-item">Carregando cotações...</div>
+    <div class="menu" id="menu">
+      <div class="row"><span>Tema</span>
+        <div class="seg" id="seg-theme"><button data-v="dark">Escuro</button><button data-v="light">Claro</button></div>
+      </div>
+      <div class="row"><span>Fonte</span>
+        <div class="seg" id="seg-font"><button data-v="0">Mono</button><button data-v="1">Sans</button><button data-v="2">Manual</button></div>
+      </div>
+      <div class="row"><span>Tamanho</span>
+        <div class="seg"><button id="fs-minus" aria-label="Diminuir">A−</button><button id="fs-plus" aria-label="Aumentar">A+</button></div>
+      </div>
+      <div class="row"><span>Cotações</span><button class="switch" id="sw-ticker" aria-label="Mostrar cotações"></button></div>
+      <div class="row"><span>Modo foco</span><button class="switch" id="sw-focus" aria-label="Modo foco"></button></div>
     </div>
   </div>
+</header>
 
-  <!-- Rodapé 2: Informações de Contagem e Marca d'Água -->
-  <footer>
-    <div id="counter">0 caracteres | 0 palavras</div>
-    <div class="watermark">by Elton Ferreira</div>
-  </footer>
+<button class="icon" id="exit-focus" title="Sair do modo foco (Esc)" aria-label="Sair do modo foco">
+  <svg viewBox="0 0 24 24"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"/></svg>
+</button>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+<main>
+  <div class="sheet">
+    <textarea id="pad" class="font-classic" placeholder="Comece a escrever. Tudo é salvo sozinho e sincroniza em tempo real."></textarea>
+  </div>
+</main>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyA7w8j5QQlJWcNbUQnHRNBbPEUqX0rG94s",
-      authDomain: "meublocodenotas-5c5c8.firebaseapp.com",
-      databaseURL: "https://meublocodenotas-5c5c8-default-rtdb.firebaseio.com",
-      projectId: "meublocodenotas-5c5c8",
-      storageBucket: "meublocodenotas-5c5c8.firebasestorage.app",
-      messagingSenderId: "1075640939913",
-      appId: "1:1075640939913:web:8457257fcb17df77175d58",
-      measurementId: "G-93Y0JKZZC7"
-    };
+<div class="ticker" id="ticker"><div class="track" id="track"><div class="t">Carregando cotações…</div></div></div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+<footer>
+  <div id="counter">0 caracteres · 0 palavras</div>
+  <div class="mark">by Elton Ferreira</div>
+</footer>
 
-    const pad = document.getElementById("pad");
-    const statusEl = document.getElementById("status");
-    const noteNameEl = document.getElementById("note-name");
-    const counterEl = document.getElementById("counter");
-    const themeBtn = document.getElementById("theme-btn");
-    const fontBtn = document.getElementById("font-btn");
-    const tickerContainer = document.getElementById("ticker-content");
+<div class="toast" id="toast"></div>
 
-    // --- LÓGICA DE ROTAS E NOTAS ---
-    function getNoteId() {
-      const savedNote = sessionStorage.getItem('gh_pages_note');
-      if (savedNote) {
-        sessionStorage.removeItem('gh_pages_note');
-        history.replaceState(null, '', '/BlocoDeNotasClon/' + savedNote);
-        return savedNote;
-      }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-      const path = window.location.pathname.split('/').filter(Boolean);
-      const pathNote = path.length > 1 ? path.slice(1).join('/') : '';
-      const hashNote = window.location.hash.replace("#", "").trim();
+const firebaseConfig = {
+  apiKey: "AIzaSyA7w8j5QQlJWcNbUQnHRNBbPEUqX0rG94s",
+  authDomain: "meublocodenotas-5c5c8.firebaseapp.com",
+  databaseURL: "https://meublocodenotas-5c5c8-default-rtdb.firebaseio.com",
+  projectId: "meublocodenotas-5c5c8",
+  storageBucket: "meublocodenotas-5c5c8.firebasestorage.app",
+  messagingSenderId: "1075640939913",
+  appId: "1:1075640939913:web:8457257fcb17df77175d58",
+  measurementId: "G-93Y0JKZZC7"
+};
+const db = getDatabase(initializeApp(firebaseConfig));
 
-      return hashNote || pathNote || "home";
+const $ = id => document.getElementById(id);
+const pad = $("pad"), statusEl = $("status"), noteInput = $("note-input"), counterEl = $("counter");
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v === null ? d : v; } catch { return d; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch {} }
+};
+
+/* ---------- Notas ---------- */
+function getNoteId(){
+  let saved = null;
+  try { saved = sessionStorage.getItem('gh_pages_note'); } catch {}
+  if (saved){
+    sessionStorage.removeItem('gh_pages_note');
+    history.replaceState(null, '', '/BlocoDeNotasClon/' + saved);
+    return saved;
+  }
+  const path = location.pathname.split('/').filter(Boolean);
+  const pathNote = path.length > 1 ? path.slice(1).join('/') : '';
+  const hashNote = decodeURIComponent(location.hash.replace("#", "")).trim();
+  return hashNote || pathNote || "home";
+}
+
+let noteId = getNoteId(), noteRef, localKey, unsubscribe = null, typing = false, timer = null;
+
+function setStatus(text, cls){
+  statusEl.className = "status " + (cls || "");
+  statusEl.querySelector("span").textContent = text;
+}
+function updateCounters(){
+  const t = pad.value, w = t.trim() ? t.trim().split(/\s+/).length : 0;
+  const min = Math.max(1, Math.round(w / 200));
+  counterEl.textContent = `${t.length} caracteres · ${w} palavras` + (w > 150 ? ` · ~${min} min de leitura` : "");
+}
+function remember(id){
+  let list = [];
+  try { list = JSON.parse(store.get("recent_notes", "[]")); } catch {}
+  list = [id, ...list.filter(n => n !== id)].slice(0, 8);
+  store.set("recent_notes", JSON.stringify(list));
+  $("recent").innerHTML = list.map(n => `<option value="${n.replace(/"/g, "&quot;")}">`).join("");
+}
+
+function loadNote(){
+  noteInput.value = noteId;
+  document.title = `${noteId} · Pad Colaborativo`;
+  remember(noteId);
+  noteRef = ref(db, 'notes/' + noteId);
+  localKey = `dontpad_cache_${noteId}`;
+  const cached = store.get(localKey, null);
+  pad.value = cached !== null ? cached : "";
+  updateCounters();
+  typing = false;
+  setStatus("Carregando…", "");
+  if (unsubscribe) unsubscribe();
+  unsubscribe = onValue(noteRef, snap => {
+    if (typing) return;
+    const val = snap.val() || "";
+    if (val !== pad.value){
+      const pos = pad.selectionStart;
+      pad.value = val;
+      try { pad.setSelectionRange(pos, pos); } catch {}
     }
+    store.set(localKey, val);
+    updateCounters();
+    setStatus("Sincronizado", "saved");
+  }, () => setStatus("Sem conexão", ""));
+}
 
-    let currentNoteId = getNoteId();
-    noteNameEl.textContent = `#${currentNoteId}`;
-    let noteRef = ref(db, 'notes/' + currentNoteId);
+pad.addEventListener("input", () => {
+  typing = true;
+  setStatus("Salvando…", "saving");
+  updateCounters();
+  store.set(localKey, pad.value);
+  clearTimeout(timer);
+  const ref_ = noteRef;
+  timer = setTimeout(() => {
+    set(ref_, pad.value)
+      .then(() => { setStatus("Salvo", "saved"); typing = false; })
+      .catch(err => { console.error("Erro ao salvar:", err); setStatus("Erro ao salvar", ""); typing = false; });
+  }, 350);
+});
 
-    const localKey = `dontpad_cache_${currentNoteId}`;
-    const cachedContent = localStorage.getItem(localKey);
-    if (cachedContent !== null) {
-      pad.value = cachedContent;
-      updateCounters();
-    }
+function goTo(name){
+  name = name.trim().replace(/^#/, "");
+  if (!name || name === noteId) { noteInput.value = noteId; return; }
+  location.hash = encodeURIComponent(name);
+}
+noteInput.addEventListener("keydown", e => {
+  if (e.key === "Enter"){ goTo(noteInput.value); noteInput.blur(); }
+  if (e.key === "Escape"){ noteInput.value = noteId; noteInput.blur(); }
+});
+noteInput.addEventListener("change", () => goTo(noteInput.value));
+noteInput.addEventListener("focus", () => noteInput.select());
+window.addEventListener("hashchange", () => { noteId = getNoteId(); loadNote(); });
 
-    let isUserTyping = false;
-    let debounceTimer = null;
-    let unsubscribe = null;
+/* ---------- Ações rápidas ---------- */
+let toastTimer;
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+async function copyText(text, okMsg){
+  try { await navigator.clipboard.writeText(text); toast(okMsg); }
+  catch {
+    const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy"); ta.remove(); toast(okMsg);
+  }
+}
+$("copy-btn").onclick = () => pad.value ? copyText(pad.value, "Texto copiado") : toast("A nota está vazia");
+$("share-btn").onclick = () => copyText(location.origin + location.pathname + "#" + encodeURIComponent(noteId), "Link da nota copiado");
+$("dl-btn").onclick = () => {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([pad.value], { type: "text/plain;charset=utf-8" }));
+  a.download = noteId.replace(/[^\w\-]+/g, "_") + ".txt";
+  a.click(); URL.revokeObjectURL(a.href); toast("Arquivo baixado");
+};
 
-    function listenToDatabase() {
-      if (unsubscribe) unsubscribe();
-      
-      unsubscribe = onValue(noteRef, (snapshot) => {
-        if (!isUserTyping) {
-          const val = snapshot.val() || "";
-          pad.value = val;
-          localStorage.setItem(localKey, val);
-          updateCounters();
-          setStatus("Sincronizado", "saved");
-        }
-      });
-    }
+/* ---------- Ajustes ---------- */
+const menu = $("menu"), menuBtn = $("menu-btn");
+function toggleMenu(open){
+  menu.classList.toggle("open", open);
+  menuBtn.setAttribute("aria-expanded", open);
+}
+menuBtn.onclick = e => { e.stopPropagation(); toggleMenu(!menu.classList.contains("open")); };
+document.addEventListener("click", e => { if (!menu.contains(e.target)) toggleMenu(false); });
 
-    listenToDatabase();
+function mark(segId, value){
+  document.querySelectorAll(`#${segId} button`).forEach(b => b.classList.toggle("on", b.dataset.v === String(value)));
+}
+function applyTheme(t){
+  document.body.classList.toggle("light", t === "light");
+  mark("seg-theme", t); store.set("theme_preference", t);
+}
+$("seg-theme").onclick = e => { if (e.target.dataset.v) applyTheme(e.target.dataset.v); };
+applyTheme(store.get("theme_preference", "dark"));
 
-    window.addEventListener("hashchange", () => {
-      currentNoteId = getNoteId();
-      noteNameEl.textContent = `#${currentNoteId}`;
-      noteRef = ref(db, 'notes/' + currentNoteId);
-      isUserTyping = false;
-      setStatus("Carregando...", "");
-      listenToDatabase();
-    });
+const fonts = ["font-classic", "font-sans", "font-cursive"];
+function applyFont(i){
+  i = Math.min(Math.max(+i || 0, 0), fonts.length - 1);
+  pad.className = fonts[i]; mark("seg-font", i); store.set("font_index", i);
+}
+$("seg-font").onclick = e => { if (e.target.dataset.v) applyFont(e.target.dataset.v); };
+applyFont(store.get("font_index", 0));
 
-    pad.addEventListener("input", () => {
-      isUserTyping = true;
-      setStatus("Salvando...", "saving");
-      updateCounters();
-      
-      localStorage.setItem(localKey, pad.value);
+let fs = parseInt(store.get("font_size", "16"), 10) || 16;
+function applySize(n){
+  fs = Math.min(28, Math.max(12, n));
+  document.documentElement.style.setProperty("--fs", fs + "px"); store.set("font_size", fs);
+}
+$("fs-minus").onclick = () => applySize(fs - 1);
+$("fs-plus").onclick = () => applySize(fs + 1);
+applySize(fs);
 
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        set(noteRef, pad.value)
-          .then(() => {
-            setStatus("Salvo", "saved");
-            isUserTyping = false;
-          })
-          .catch((err) => {
-            console.error("Erro ao salvar:", err);
-            setStatus("Erro de salvamento", "saving");
-            isUserTyping = false;
-          });
-      }, 350);
-    });
+function setSwitch(id, on){ $(id).classList.toggle("on", on); }
+function applyTicker(on){
+  $("ticker").classList.toggle("hide", !on); setSwitch("sw-ticker", on); store.set("ticker_on", on ? "1" : "0");
+}
+$("sw-ticker").onclick = () => applyTicker(!$("sw-ticker").classList.contains("on"));
+applyTicker(store.get("ticker_on", "1") === "1");
 
-    function setStatus(text, className) {
-      statusEl.textContent = text;
-      statusEl.className = `status ${className}`;
-    }
+function applyFocus(on){
+  document.body.classList.toggle("focus", on); setSwitch("sw-focus", on);
+  if (on){ toggleMenu(false); pad.focus(); }
+}
+$("sw-focus").onclick = () => applyFocus(!document.body.classList.contains("focus"));
+$("exit-focus").onclick = () => applyFocus(false);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.body.classList.contains("focus")) applyFocus(false);
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){ e.preventDefault(); noteInput.focus(); }
+});
 
-    function updateCounters() {
-      const text = pad.value;
-      const chars = text.length;
-      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-      counterEl.textContent = `${chars} caracteres | ${words} palavras`;
-    }
+/* Tab insere recuo em vez de pular o foco */
+pad.addEventListener("keydown", e => {
+  if (e.key === "Tab" && !e.shiftKey){
+    e.preventDefault();
+    pad.setRangeText("  ", pad.selectionStart, pad.selectionEnd, "end");
+    pad.dispatchEvent(new Event("input"));
+  }
+});
 
-    // --- CONTROLE DE TEMA ---
-    themeBtn.addEventListener("click", () => {
-      document.body.classList.toggle("light-theme");
-      const isLight = document.body.classList.contains("light-theme");
-      themeBtn.textContent = isLight ? "🌙 Tema Escuro" : "☀️ Tema Claro";
-      localStorage.setItem("theme_preference", isLight ? "light" : "dark");
-    });
+/* ---------- Cotações ---------- */
+const item = (name, price, pct) => {
+  const up = pct >= 0;
+  return `<div class="t"><b>${name}</b><span>${price}</span><span class="${up ? "up" : "down"}">${up ? "▲ +" : "▼ "}${pct.toFixed(2)}%</span></div>`;
+};
+async function fetchQuotes(){
+  const items = [
+    item("PETR4", "38.45", 1.25), item("ABEV3", "14.20", -0.42),
+    item("VALE3", "62.10", 0.85), item("ITUB4", "34.80", -0.15)
+  ];
+  try {
+    const r = await fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-USD").then(r => r.json());
+    if (r?.USDBRL) items.push(item("USD/BRL", parseFloat(r.USDBRL.bid).toFixed(2), parseFloat(r.USDBRL.pctChange)));
+    if (r?.EURUSD) items.push(item("EUR/USD", parseFloat(r.EURUSD.bid).toFixed(4), parseFloat(r.EURUSD.pctChange)));
+  } catch { console.warn("Moedas indisponíveis"); }
+  try {
+    const c = await fetch("https://api.binance.com/api/v3/ticker/24hr?symbols=[%22BTCUSDT%22,%22ETHUSDT%22]").then(r => r.json());
+    if (Array.isArray(c)) c.forEach(x => items.push(item(x.symbol === "BTCUSDT" ? "BTC/USD" : "ETH/USD",
+      parseFloat(x.lastPrice).toLocaleString("en-US", { minimumFractionDigits: 2 }), parseFloat(x.priceChangePercent))));
+  } catch { console.warn("Criptos indisponíveis"); }
+  $("track").innerHTML = [...items, ...items].join("");
+}
 
-    if (localStorage.getItem("theme_preference") === "light") {
-      document.body.classList.add("light-theme");
-      themeBtn.textContent = "🌙 Tema Escuro";
-    }
-
-    // --- CONTROLE DE FONTE ---
-    const fontStyles = [
-      { class: "font-classic", label: "✍️ Fonte: Monospace" },
-      { class: "font-cursive", label: "✍️ Fonte: Manuscrita" },
-      { class: "font-code-italic", label: "✍️ Fonte: Itálico Code" }
-    ];
-
-    let currentFontIndex = parseInt(localStorage.getItem("font_index") || "0", 10);
-
-    function applyFontIndex(index) {
-      pad.className = fontStyles[index].class;
-      fontBtn.textContent = fontStyles[index].label;
-      localStorage.setItem("font_index", index.toString());
-    }
-
-    fontBtn.addEventListener("click", () => {
-      currentFontIndex = (currentFontIndex + 1) % fontStyles.length;
-      applyFontIndex(currentFontIndex);
-    });
-
-    applyFontIndex(currentFontIndex);
-
-    // --- TICKER DE COTAÇÕES TOLERANTE A FALHAS DE REDE MÓVEL ---
-    async function fetchQuotes() {
-      const items = [];
-
-      // Ações B3 (sempre presentes)
-      const stocks = [
-        { symbol: "PETR4", price: 38.45, pct: 1.25 },
-        { symbol: "ABEV3", price: 14.20, pct: -0.42 },
-        { symbol: "VALE3", price: 62.10, pct: 0.85 },
-        { symbol: "ITUB4", price: 34.80, pct: -0.15 }
-      ];
-
-      stocks.forEach(s => {
-        items.push(formatTickerItem(s.symbol, s.price.toFixed(2), s.pct));
-      });
-
-      // Tenta buscar Moedas (AwesomeAPI)
-      try {
-        const forexRes = await fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-USD").then(r => r.json());
-        if (forexRes?.USDBRL) {
-          items.push(formatTickerItem("USD/BRL", parseFloat(forexRes.USDBRL.bid).toFixed(2), parseFloat(forexRes.USDBRL.pctChange)));
-        }
-        if (forexRes?.EURUSD) {
-          items.push(formatTickerItem("EUR/USD", parseFloat(forexRes.EURUSD.bid).toFixed(4), parseFloat(forexRes.EURUSD.pctChange)));
-        }
-      } catch (e) {
-        console.warn("Moedas indisponíveis no momento");
-      }
-
-      // Tenta buscar Criptomoedas (Binance)
-      try {
-        const cryptoRes = await fetch("https://api.binance.com/api/v3/ticker/24hr?symbols=[%22BTCUSDT%22,%22ETHUSDT%22]").then(r => r.json());
-        if (Array.isArray(cryptoRes)) {
-          cryptoRes.forEach(c => {
-            const name = c.symbol === "BTCUSDT" ? "BTC/USD" : "ETH/USD";
-            items.push(formatTickerItem(name, parseFloat(c.lastPrice).toLocaleString('en-US', {minimumFractionDigits: 2}), parseFloat(c.priceChangePercent)));
-          });
-        }
-      } catch (e) {
-        console.warn("Criptos indisponíveis no 4G/rede móvel");
-      }
-
-      // Renderiza duplicando para efeito infinito de rolagem
-      if (items.length > 0) {
-        tickerContainer.innerHTML = [...items, ...items].join("");
-      }
-    }
-
-    function formatTickerItem(name, price, pct) {
-      const isUp = pct >= 0;
-      const arrow = isUp ? "▲" : "▼";
-      const cssClass = isUp ? "ticker-up" : "ticker-down";
-      const sign = isUp ? "+" : "";
-      return `
-        <div class="ticker-item">
-          <span>${name}</span>
-          <span>${price}</span>
-          <span class="${cssClass}">${arrow} ${sign}${pct.toFixed(2)}%</span>
-        </div>
-      `;
-    }
-
-    fetchQuotes();
-    setInterval(fetchQuotes, 60000);
-  </script>
+loadNote();
+fetchQuotes();
+setInterval(fetchQuotes, 60000);
+</script>
 </body>
 </html>
