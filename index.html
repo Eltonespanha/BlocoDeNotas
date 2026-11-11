@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pad Colaborativo com Ticker de Cotações</title>
+  <title>Pad Colaborativo</title>
   <style>
     :root {
       --bg-main: #1e1e1e;
@@ -42,47 +42,6 @@
       height: 100vh;
       overflow: hidden;
       transition: background-color 0.3s, color 0.3s;
-    }
-
-    /* Rodapé Superior - Ticker de Cotações */
-    .top-ticker-bar {
-      height: 36px;
-      background-color: var(--bg-bar);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      overflow: hidden;
-      white-space: nowrap;
-      position: relative;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .ticker-wrapper {
-      display: inline-flex;
-      white-space: nowrap;
-      animation: marquee 35s linear infinite;
-    }
-
-    .ticker-wrapper:hover {
-      animation-play-state: paused;
-    }
-
-    .ticker-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0 25px;
-    }
-
-    .ticker-up { color: #00ff66; }
-    .ticker-down { color: #ff3344; }
-    body.light-theme .ticker-up { color: #15803d; }
-    body.light-theme .ticker-down { color: #dc2626; }
-
-    @keyframes marquee {
-      0% { transform: translateX(0%); }
-      100% { transform: translateX(-50%); }
     }
 
     /* Cabeçalho de Controle */
@@ -128,7 +87,6 @@
       flex: 1;
       display: flex;
       padding: 10px;
-      perspective: 1000px;
     }
 
     textarea {
@@ -139,25 +97,74 @@
       border: none;
       outline: none;
       padding: 15px;
-      font-family: inherit;
       font-size: 16px;
       line-height: 1.6;
       resize: none;
-      transition: transform 0.4s ease, border-radius 0.4s ease, filter 0.4s ease;
+      transition: font-family 0.2s, font-style 0.2s, letter-spacing 0.2s;
     }
 
-    /* Efeito de Texto Curvo / Arc 3D */
-    textarea.curved-mode {
-      transform: rotateX(8deg) rotateY(-2deg) scale(0.98);
-      border-radius: 20px;
-      background: rgba(0, 0, 0, 0.05);
-      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.2);
-      border: 1px dashed var(--accent-color);
+    /* Variações de Estilo de Escrita */
+    textarea.font-classic {
+      font-family: 'Courier New', Courier, monospace;
+      font-style: normal;
+      letter-spacing: normal;
     }
 
-    /* Rodapé Inferior */
+    textarea.font-cursive {
+      font-family: 'Segoe Print', 'Caveat', 'Comic Sans MS', cursive;
+      font-size: 17px;
+      letter-spacing: 0.5px;
+    }
+
+    textarea.font-code-italic {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-style: italic;
+      letter-spacing: 0.3px;
+    }
+
+    /* Rodapé Inferior - Ticker de Cotações */
+    .bottom-ticker-bar {
+      height: 32px;
+      background-color: var(--bg-bar);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .ticker-wrapper {
+      display: inline-flex;
+      white-space: nowrap;
+      animation: marquee 35s linear infinite;
+    }
+
+    .ticker-wrapper:hover {
+      animation-play-state: paused;
+    }
+
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 25px;
+    }
+
+    .ticker-up { color: #00ff66; }
+    .ticker-down { color: #ff3344; }
+    body.light-theme .ticker-up { color: #15803d; }
+    body.light-theme .ticker-down { color: #dc2626; }
+
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* Rodapé com Informações */
     footer {
-      height: 36px;
+      height: 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -190,29 +197,29 @@
 </head>
 <body>
 
-  <!-- Rodapé de Cotações no Topo -->
-  <div class="top-ticker-bar">
-    <div class="ticker-wrapper" id="ticker-content">
-      <div class="ticker-item">Carregando cotações...</div>
-    </div>
-  </div>
-
   <!-- Cabeçalho de Navegação e Controles -->
   <header>
     <div>Nota atual: <span id="note-name" class="url-info">#home</span></div>
     <div class="controls">
       <button id="theme-btn" class="btn">☀️ Tema Claro</button>
-      <button id="curve-btn" class="btn">〰️ Texto Curvo</button>
+      <button id="font-btn" class="btn">✍️ Fonte: Monospace</button>
       <div id="status" class="status">Conectando...</div>
     </div>
   </header>
 
   <!-- Editor de Texto Principal -->
   <div class="editor-container">
-    <textarea id="pad" placeholder="Digite seu texto aqui..."></textarea>
+    <textarea id="pad" class="font-classic" placeholder="Digite seu texto aqui..."></textarea>
   </div>
 
-  <!-- Rodapé Inferior com Marca d'Água -->
+  <!-- Rodapé 1: Ticker de Cotações no Rodapé -->
+  <div class="bottom-ticker-bar">
+    <div class="ticker-wrapper" id="ticker-content">
+      <div class="ticker-item">Carregando cotações...</div>
+    </div>
+  </div>
+
+  <!-- Rodapé 2: Informações de Contagem e Marca d'Água -->
   <footer>
     <div id="counter">0 caracteres | 0 palavras</div>
     <div class="watermark">by Elton Ferreira</div>
@@ -222,7 +229,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Credenciais do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyA7w8j5QQlJWcNbUQnHRNBbPEUqX0rG94s",
       authDomain: "meublocodenotas-5c5c8.firebaseapp.com",
@@ -242,7 +248,7 @@
     const noteNameEl = document.getElementById("note-name");
     const counterEl = document.getElementById("counter");
     const themeBtn = document.getElementById("theme-btn");
-    const curveBtn = document.getElementById("curve-btn");
+    const fontBtn = document.getElementById("font-btn");
 
     // --- LÓGICA DE ROTAS E NOTAS ---
     function getNoteId() {
@@ -347,25 +353,33 @@
       themeBtn.textContent = "🌙 Tema Escuro";
     }
 
-    // --- CONTROLE DE TEXTO CURVO / NORMAL ---
-    curveBtn.addEventListener("click", () => {
-      pad.classList.toggle("curved-mode");
-      const isCurved = pad.classList.contains("curved-mode");
-      curveBtn.textContent = isCurved ? "📝 Texto Normal" : "〰️ Texto Curvo";
-      localStorage.setItem("curve_preference", isCurved ? "true" : "false");
+    // --- CONTROLE DE ESTILO DE FONTE ---
+    const fontStyles = [
+      { class: "font-classic", label: "✍️ Fonte: Monospace" },
+      { class: "font-cursive", label: "✍️ Fonte: Manuscrita" },
+      { class: "font-code-italic", label: "✍️ Fonte: Itálico Code" }
+    ];
+
+    let currentFontIndex = parseInt(localStorage.getItem("font_index") || "0", 10);
+
+    function applyFontIndex(index) {
+      pad.className = fontStyles[index].class;
+      fontBtn.textContent = fontStyles[index].label;
+      localStorage.setItem("font_index", index.toString());
+    }
+
+    fontBtn.addEventListener("click", () => {
+      currentFontIndex = (currentFontIndex + 1) % fontStyles.length;
+      applyFontIndex(currentFontIndex);
     });
 
-    if (localStorage.getItem("curve_preference") === "true") {
-      pad.classList.add("curved-mode");
-      curveBtn.textContent = "📝 Texto Normal";
-    }
+    applyFontIndex(currentFontIndex);
 
     // --- TICKER DE COTAÇÕES EM TEMPO REAL ---
     const tickerContainer = document.getElementById("ticker-content");
 
     async function fetchQuotes() {
       try {
-        // Busca Moedas (USD/BRL, EUR/USD) e Cripto (BTC, ETH)
         const [forexRes, cryptoRes] = await Promise.all([
           fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-USD").then(r => r.json()).catch(() => null),
           fetch("https://api.binance.com/api/v3/ticker/24hr?symbols=[%22BTCUSDT%22,%22ETHUSDT%22]").then(r => r.json()).catch(() => null)
@@ -373,7 +387,6 @@
 
         const items = [];
 
-        // Ações B3 (simuladas/formatadas com base na API)
         const stocks = [
           { symbol: "PETR4", price: 38.45, pct: 1.25 },
           { symbol: "ABEV3", price: 14.20, pct: -0.42 },
@@ -385,7 +398,6 @@
           items.push(formatTickerItem(s.symbol, s.price.toFixed(2), s.pct));
         });
 
-        // Moedas
         if (forexRes && forexRes.USDBRL) {
           items.push(formatTickerItem("USD/BRL", parseFloat(forexRes.USDBRL.bid).toFixed(2), parseFloat(forexRes.USDBRL.pctChange)));
         }
@@ -393,7 +405,6 @@
           items.push(formatTickerItem("EUR/USD", parseFloat(forexRes.EURUSD.bid).toFixed(4), parseFloat(forexRes.EURUSD.pctChange)));
         }
 
-        // Criptos
         if (cryptoRes && Array.isArray(cryptoRes)) {
           cryptoRes.forEach(c => {
             const name = c.symbol === "BTCUSDT" ? "BTC/USD" : "ETH/USD";
@@ -401,7 +412,6 @@
           });
         }
 
-        // Duplica a lista para rolagem contínua sem quebras
         const fullList = [...items, ...items].join("");
         tickerContainer.innerHTML = fullList;
 
@@ -425,7 +435,7 @@
     }
 
     fetchQuotes();
-    setInterval(fetchQuotes, 60000); // Atualiza cotações a cada 1 minuto
+    setInterval(fetchQuotes, 60000);
   </script>
 </body>
 </html>
